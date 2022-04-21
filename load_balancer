@@ -1,0 +1,26 @@
+When we create a load balancer for some reason, the LB is always in the provisioning_status of PENDING_CREATE, how to delete this LB？
+
+####The delete method that will report an error####
+
+root@controller-node01 ~(keystone)# openstack loadbalancer list
++--------------------------------------+--------+----------------------------------+-----------------+---------------------+------------------+----------+
+| id                                   | name   | project_id                       | vip_address     | provisioning_status | operating_status | provider |
++--------------------------------------+--------+----------------------------------+-----------------+---------------------+------------------+----------+
+| d924adcc-6679-43fb-b265-2c303783e4af | lb1    | 794286c5670a44efae7badda15340364 | 10.0.2.107      | PENDING_CREATE      | OFFLINE          | amphora  |
++--------------------------------------+--------+----------------------------------+-----------------+---------------------+------------------+----------+
+
+
+root@controller-node01 ~(keystone)# openstack loadbalancer delete d924adcc-6679-43fb-b265-2c303783e4af
+Invalid state PENDING_CREATE of loadbalancer resource d924adcc-6679-43fb-b265-2c303783e4af (HTTP 409) (Request-ID: req-9a9f9bc8-1ebb-4e99-8cd5-e61ef8bc9684)
+
+
+
+
+
+####The correct way to delete####
+
+root@controller-node01 ~(keystone)# mysql
+MariaDB [(none)]> use octavia;
+MariaDB [octavia]> update load_balancer set provisioning_status='ERROR' where id='d924adcc-6679-43fb-b265-2c303783e4af';
+
+openstack loadbalancer delete d924adcc-6679-43fb-b265-2c303783e4af
